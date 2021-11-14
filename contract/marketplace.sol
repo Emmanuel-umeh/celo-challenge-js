@@ -87,18 +87,6 @@ contract Marketplace {
 
 	// Modify Price
 	function modifyPrice(uint _index, uint _price) onlyProductOwner(_index) public {
-
-		// charge user for modiying fee
-		if(fee> 0){
-			require(
-		  IERC20Token(cUsdTokenAddress).transferFrom(
-			msg.sender,
-			adminAddress,
-			fee
-		  ),
-		  "Transfer failed."
-		);
-		}
 	    products[_index].price = _price;
 	}
 
@@ -130,11 +118,26 @@ contract Marketplace {
 
 	// Buy Product
 	function buyProduct(uint _index) public payable  {
+		
+		uint feeValue = products[_index].price / fee;
+		
+		// charge buyer user
+		if(feeValue > 0){
+			require(
+		  		IERC20Token(cUsdTokenAddress).transferFrom(
+					msg.sender,
+					adminAddress,
+					feeValue
+		  		),
+		  		"Transfer failed."
+			);
+		}
+
 		require(
 		  IERC20Token(cUsdTokenAddress).transferFrom(
 			msg.sender,
 			products[_index].owner,
-			products[_index].price
+			products[_index].price - feeValue
 		  ),
 		  "Transfer failed."
 		);
